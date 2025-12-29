@@ -29,3 +29,4 @@ services:
 ```
 Eine aktuelle Version von Yellow wird automatisch heruntergeladen.
 Infos zum CMS: https://datenstrom.se/de/
+Git: datenstrom/yellow
