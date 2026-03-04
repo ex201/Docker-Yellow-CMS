@@ -1,27 +1,36 @@
-FROM php:8.2-apache
+# Nutzen des schlanken FPM Images
+FROM php:8.2-fpm-alpine
 
-# Pakete installieren
-RUN apt-get update && apt-get install -y \
-    git zip unzip curl \
-    libjpeg-dev libpng-dev libfreetype6-dev libzip-dev \
-    && docker-php-ext-configure gd --with-jpeg --with-freetype \
-    && docker-php-ext-install gd zip \
-    && a2enmod rewrite headers \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Installation von Abhängigkeiten und PHP-Extensions
+RUN apk add --no-local-cache \
+    icu-dev \
+    libpng-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    curl \
+    && docker-php-ext-install intl gd zip
 
-# Apache Konfiguration
-RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
-
+# Arbeitsverzeichnis festlegen
 WORKDIR /var/www/html
 
-# Yellow CMS während des Builds herunterladen und entpacken
-RUN curl -L https://github.com/datenstrom/yellow/archive/refs/heads/master.zip -o /tmp/yellow.zip \
-    && unzip /tmp/yellow.zip -d /tmp/ \
-    && cp -a /tmp/yellow-*/. /var/www/html/ \
-    && rm -rf /tmp/yellow.zip /tmp/yellow-* \
-    && chown -R www-data:www-data /var/www/html
+# Yellow CMS von GitHub laden
+RUN curl -L https://github.com/datenstrom/yellow/archive/refs/heads/main.zip -o yellow.zip \
+    && unzip yellow.zip \
+    && cp -R yellow-main/* . \
+    && rm -rf yellow-main yellow.zip
 
-# Standard Apache Port
-EXPOSE 80
+# Entrypoint-Skript erstellen
+RUN echo '#!/bin/sh' > /usr/local/bin/docker-entrypoint.sh && \
+    echo 'if [ -z "$(ls -A /var/www/html)" ]; then' >> /usr/local/bin/docker-entrypoint.sh && \
+    echo '  cp -R /usr/src/yellow/. /var/www/html/' >> /usr/local/bin/docker-entrypoint.sh && \
+    echo 'fi' >> /usr/local/bin/docker-entrypoint.sh && \
+    echo 'chown -R www-data:www-data /var/www/html' >> /usr/local/bin/docker-entrypoint.sh && \
+    echo 'exec "$@"' >> /usr/local/bin/docker-entrypoint.sh && \
+    chmod +x /usr/local/bin/docker-entrypoint.sh
 
-CMD ["apache2-foreground"]
+# Dateien für das Backup zwischenspeichern (für das Volume-Mapping)
+RUN mkdir -p /usr/src/yellow && cp -R /var/www/html/. /usr/src/yellow/
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["php-fpm"]
