@@ -1,16 +1,21 @@
-# Nutzen des schlanken FPM Images
-FROM php:8.2-fpm-alpine
+FROM php:8.2-apache
 
-# Installation von Abhängigkeiten und PHP-Extensions
-RUN apk add --no-local-cache \
-    icu-dev \
-    libpng-dev \
-    libzip-dev \
+# Danach folgt dein restlicher Code:
+RUN apt-get update && apt-get install -y \
+    git \
     zip \
     unzip \
     curl \
-    && docker-php-ext-install intl gd zip
-
+    libjpeg-dev \
+    libpng-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    libicu-dev \
+    && docker-php-ext-configure gd --with-jpeg --with-freetype \
+    && docker-php-ext-install gd zip intl \
+    && a2enmod rewrite headers \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    
 # Arbeitsverzeichnis festlegen
 WORKDIR /var/www/html
 
