@@ -1,5 +1,5 @@
 # Docker Datenstrom Yellow CMS
-Dieses Repository enthält ein fertiges Docker-Image für das Datenstrom Yellow CMS. Es basiert auf PHP 8.2 mit Apache und ist so vorkonfiguriert, dass es sofort einsatzbereit ist.
+Dieses Repository enthält ein fertiges Docker-Image für das Datenstrom Yellow CMS. Es basiert auf Debian mit PHP 8.2 mit Apache und ist so vorkonfiguriert, dass es sofort einsatzbereit ist.
 
 ## Features
 Ready-to-run: Das CMS ist bereits im Image vorinstalliert (kein Download beim Start nötig).
